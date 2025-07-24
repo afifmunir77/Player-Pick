@@ -453,8 +453,8 @@ function loadSettings() {
         document.getElementById('max-ovr-value').textContent = settings.maxOvr || "111";
         document.getElementById('min-shard-filter').value = settings.minShard || "0";
         document.getElementById('min-shard-value').textContent = settings.minShard || "0";
-        document.getElementById_('max-shard-filter').value = settings.maxShard || "1500";
-        document.getElementById_('max-shard-value').textContent = settings.maxShard || "1500";
+        document.getElementById('max-shard-filter').value = settings.maxShard || "1500";
+        document.getElementById('max-shard-value').textContent = settings.maxShard || "1500";
 
         if (settings.selectedPositions && Array.isArray(settings.selectedPositions)) {
             settings.selectedPositions.forEach(positionValue => {
@@ -512,7 +512,6 @@ function loadPresets() {
 
     let presets = JSON.parse(localStorage.getItem('avsPresets')) || [];
 
-    // Sort presets alphabetically
     presets.sort((a, b) => a.name.localeCompare(b.name));
 
     if (presets.length === 0) {
@@ -526,14 +525,13 @@ function loadPresets() {
         presetItem.innerHTML = `
             <span class="font-medium text-gray-800">${preset.name}</span>
             <div class="preset-actions flex gap-2">
-                <button class="load-preset-btn bg-green-500 text-white py-1 px-3 rounded-md hover:bg-green-600 transition-colors text-sm" data-name="${preset.name}">Load</button>
-                <button class="delete-preset-btn bg-red-500 text-white py-1 px-3 rounded-md hover:bg-red-600 transition-colors text-sm" data-index="${index}">Delete</button>
+                <button class="load-preset-btn bg-green-500 text-white py-1 px-3 rounded-md hover:bg-green-600" data-name="${preset.name}">Load</button>
+                <button class="delete-preset-btn bg-red-500 text-white py-1 px-3 rounded-md hover:bg-red-600" data-index="${index}">Delete</button>
             </div>
         `;
         presetList.appendChild(presetItem);
     });
 
-    // Add event listeners to load and delete buttons
     document.querySelectorAll('.load-preset-btn').forEach(button => {
         button.addEventListener('click', function() {
             const presetName = this.getAttribute('data-name');
@@ -576,7 +574,7 @@ function loadPresets() {
             let presets = JSON.parse(localStorage.getItem('avsPresets')) || [];
             presets.splice(index, 1);
             localStorage.setItem('avsPresets', JSON.stringify(presets));
-            loadPresets(); // Reload presets after deletion
+            loadPresets();
         });
     });
 }
@@ -715,14 +713,6 @@ document.getElementById('load-preset').addEventListener('click', loadPresets);
 
 // Event listener for position filter toggle
 document.getElementById('position-filter-toggle')?.addEventListener('click', togglePositionFilterPanel);
-
-
-// Event listeners for preset buttons
-document.getElementById('save-preset').addEventListener('click', savePreset);
-document.getElementById('load-preset').addEventListener('click', loadPresets);
-
-// Event listener for position filter toggle
-document.getElementById('position-filter-toggle').addEventListener('click', togglePositionFilterPanel);
 
 // Load settings and presets on page load
 window.addEventListener('load', () => {

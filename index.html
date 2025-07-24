@@ -665,7 +665,50 @@ document.getElementById('save-preset').addEventListener('click', savePreset);
 document.getElementById('load-preset').addEventListener('click', loadPresets);
 
 // Event listener for position filter toggle
-document.getElementById('position-filter-toggle').addEventListener('click', togglePositionFilterPanel);
+// Event listener for position filter toggle
+// document.getElementById('position-filter-toggle')?.addEventListener('click', togglePositionFilterPanel);
+
+// Function to save current settings to localStorage
+function saveSettings() {
+    const settings = {
+        minOvrFilter: document.getElementById('min-ovr-filter').value,
+        maxOvrFilter: document.getElementById('max-ovr-filter').value,
+        minShardFilter: document.getElementById('min-shard-filter').value,
+        maxShardFilter: document.getElementById('max-shard-filter').value,
+        selectedPositions: Array.from(document.querySelectorAll('#position-filter-panel input[type="checkbox"]:checked')).map(cb => cb.value),
+        sortBy: document.getElementById('sort-by').value,
+        sortOrder: document.getElementById('sort-order').value
+    };
+    localStorage.setItem('avsSettings', JSON.stringify(settings));
+}
+
+// Function to load settings from localStorage
+function loadSettings() {
+    const savedSettings = localStorage.getItem('avsSettings');
+    if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        document.getElementById('min-ovr-filter').value = settings.minOvrFilter || "108";
+        document.getElementById('min-ovr-value').textContent = settings.minOvrFilter || "108";
+        document.getElementById('max-ovr-filter').value = settings.maxOvrFilter || "111";
+        document.getElementById('max-ovr-value').textContent = settings.maxOvrFilter || "111";
+        document.getElementById('min-shard-filter').value = settings.minShardFilter || "0";
+        document.getElementById('min-shard-value').textContent = settings.minShardFilter || "0";
+        document.getElementById('max-shard-filter').value = settings.maxShardFilter || "1500";
+        document.getElementById('max-shard-value').textContent = settings.maxShardFilter || "1500";
+
+        if (settings.selectedPositions && Array.isArray(settings.selectedPositions)) {
+            settings.selectedPositions.forEach(positionValue => {
+                const checkbox = document.querySelector(`#position-filter-panel input[value="${positionValue}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            });
+        }
+
+        document.getElementById('sort-by').value = settings.sortBy;
+        document.getElementById('sort-order').value = settings.sortOrder;
+    }
+}
 
 // Load settings and presets on page load
 window.addEventListener('load', () => {

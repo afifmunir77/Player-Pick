@@ -155,24 +155,8 @@
 
             <div class="card filter-section">
                 <h2>Sorting</h2>
-                <div class="filter-group flex flex-col md:flex-row md:items-center gap-4">
-                    <div class="w-full md:w-1/2">
-                        <label for="sort-by" class="block mb-1">Sort By:</label>
-                        <select id="sort-by" class="w-full p-2 border border-gray-300 rounded-md">
-                            <option value="name">Name</option>
-                            <option value="ovr">OVR</option>
-                            <option value="position">Position</option>
-                            <option value="shard-cost">Shard Cost</option>
-                            <option value="week">Week</option>
-                        </select>
-                    </div>
-                    <div class="w-full md:w-1/2">
-                        <label for="sort-order" class="block mb-1">Order:</label>
-                        <select id="sort-order" class="w-full p-2 border border-gray-300 rounded-md">
-                            <option value="asc">Ascending</option>
-                            <option value="desc">Descending</option>
-                        </select>
-                    </div>
+                <div id="sorting-panel">
+                    <!-- Sorting options will be dynamically inserted here -->
                 </div>
             </div>
 
@@ -384,28 +368,25 @@ function filterPlayers() {
 
 // Function to sort players
 function sortPlayers(data) {
-    const sortBy = document.getElementById('sort-by').value;
-    const sortOrder = document.getElementById('sort-order').value;
+    const sortOption = document.querySelector('input[name="sort-option"]:checked');
+    if (!sortOption) {
+        return data;
+    }
+
+    const sortBy = sortOption.dataset.sortBy;
+    const sortOrder = sortOption.dataset.sortOrder;
 
     return [...data].sort((a, b) => {
         let comparison = 0;
 
-        if (sortBy === 'name') {
-            comparison = a.name.localeCompare(b.name);
-        } else if (sortBy === 'ovr') {
+        if (sortBy === 'ovr') {
             comparison = a.ovr - b.ovr;
         } else if (sortBy === 'position') {
-            // Use predefined order for positions
-            const posA = positionOrder[a.position] || 99; // Default to high value if position not found
+            const posA = positionOrder[a.position] || 99;
             const posB = positionOrder[b.position] || 99;
             comparison = posA - posB;
         } else if (sortBy === 'shard-cost') {
             comparison = a.shardCost - b.shardCost;
-        } else if (sortBy === 'week') {
-            // Handle empty week values for sorting, treating "" as lowest
-            const weekA = a.week !== "" ? a.week : -1;
-            const weekB = b.week !== "" ? b.week : -1;
-            comparison = weekA - weekB;
         }
 
         return sortOrder === 'asc' ? comparison : -comparison;
@@ -664,9 +645,72 @@ document.getElementById('week-header')?.addEventListener('click', () => {
 document.getElementById('save-preset').addEventListener('click', savePreset);
 document.getElementById('load-preset').addEventListener('click', loadPresets);
 
-// Event listener for position filter toggle
-// Event listener for position filter toggle
-// document.getElementById('position-filter-toggle')?.addEventListener('click', togglePositionFilterPanel);
+// --- SORTING FUNCTIONS ---
+function populateSortingPanel() {
+    const panel = document.getElementById('sorting-panel');
+    panel.innerHTML = '';
+
+    const sortingOptions = {
+        "OVR": "ovr",
+        "Position": "position",
+        "Shard": "shard-cost"
+    };
+
+    for (const label in sortingOptions) {
+        const value = sortingOptions[label];
+        const row = document.createElement('div');
+        row.className = 'flex justify-between items-center mb-2';
+
+        const ascWrapper = document.createElement('div');
+        ascWrapper.className = 'flex items-center';
+        const ascCheckbox = document.createElement('input');
+        ascCheckbox.type = 'checkbox';
+        ascCheckbox.id = `sort-${value}-asc`;
+        ascCheckbox.name = 'sort-option';
+        ascCheckbox.dataset.sortBy = value;
+        ascCheckbox.dataset.sortOrder = 'asc';
+        ascCheckbox.className = 'form-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500';
+        ascCheckbox.addEventListener('change', handleSortChange);
+        const ascLabel = document.createElement('label');
+        ascLabel.htmlFor = `sort-${value}-asc`;
+        ascLabel.textContent = `${label} \u2191`;
+        ascLabel.className = 'ml-2 text-gray-700';
+        ascWrapper.appendChild(ascCheckbox);
+        ascWrapper.appendChild(ascLabel);
+
+        const descWrapper = document.createElement('div');
+        descWrapper.className = 'flex items-center';
+        const descCheckbox = document.createElement('input');
+        descCheckbox.type = 'checkbox';
+        descCheckbox.id = `sort-${value}-desc`;
+        descCheckbox.name = 'sort-option';
+        descCheckbox.dataset.sortBy = value;
+        descCheckbox.dataset.sortOrder = 'desc';
+        descCheckbox.className = 'form-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500';
+        descCheckbox.addEventListener('change', handleSortChange);
+        const descLabel = document.createElement('label');
+        descLabel.htmlFor = `sort-${value}-desc`;
+        descLabel.textContent = `${label} \u2193`;
+        descLabel.className = 'ml-2 text-gray-700';
+        descWrapper.appendChild(descCheckbox);
+        descWrapper.appendChild(descLabel);
+
+        row.appendChild(ascWrapper);
+        row.appendChild(descWrapper);
+        panel.appendChild(row);
+    }
+}
+
+function handleSortChange(event) {
+    const checkboxes = document.getElementsByName('sort-option');
+    checkboxes.forEach(checkbox => {
+        if (checkbox !== event.target) {
+            checkbox.checked = false;
+        }
+    });
+    updateDisplay();
+    saveSettings();
+}
 
 // Function to save current settings to localStorage
 function saveSettings() {
@@ -713,6 +757,7 @@ function loadSettings() {
 // Load settings and presets on page load
 window.addEventListener('load', () => {
     populatePositionFilter(); // Populate position filter options
+    populateSortingPanel(); // Populate sorting options
     loadSettings(); // Load saved settings (this will check relevant position checkboxes)
     loadPresets();
     updateDisplay(); // Initial render of cards

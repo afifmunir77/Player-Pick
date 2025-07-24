@@ -395,13 +395,15 @@ function sortPlayers(data) {
 
 // Function to save current settings to localStorage
 function saveSettings() {
+    const sortOption = document.querySelector('input[name="sort-option"]:checked');
     const settings = {
-        ovrFilter: document.getElementById('ovr-filter').value,
+        minOvrFilter: document.getElementById('min-ovr-filter').value,
+        maxOvrFilter: document.getElementById('max-ovr-filter').value,
         minShardFilter: document.getElementById('min-shard-filter').value,
         maxShardFilter: document.getElementById('max-shard-filter').value,
         selectedPositions: Array.from(document.querySelectorAll('#position-filter-panel input[type="checkbox"]:checked')).map(cb => cb.value),
-        sortBy: document.getElementById('sort-by').value,
-        sortOrder: document.getElementById('sort-order').value
+        sortBy: sortOption ? sortOption.dataset.sortBy : null,
+        sortOrder: sortOption ? sortOption.dataset.sortOrder : null
     };
     localStorage.setItem('avsSettings', JSON.stringify(settings));
 }
@@ -411,7 +413,10 @@ function loadSettings() {
     const savedSettings = localStorage.getItem('avsSettings');
     if (savedSettings) {
         const settings = JSON.parse(savedSettings);
-        document.getElementById('ovr-filter').value = settings.ovrFilter;
+        document.getElementById('min-ovr-filter').value = settings.minOvrFilter || "108";
+        document.getElementById('min-ovr-value').textContent = settings.minOvrFilter || "108";
+        document.getElementById('max-ovr-filter').value = settings.maxOvrFilter || "111";
+        document.getElementById('max-ovr-value').textContent = settings.maxOvrFilter || "111";
         document.getElementById('min-shard-filter').value = settings.minShardFilter || "0";
         document.getElementById('min-shard-value').textContent = settings.minShardFilter || "0";
         document.getElementById('max-shard-filter').value = settings.maxShardFilter || "1500";
@@ -426,8 +431,12 @@ function loadSettings() {
             });
         }
 
-        document.getElementById('sort-by').value = settings.sortBy;
-        document.getElementById('sort-order').value = settings.sortOrder;
+        if (settings.sortBy && settings.sortOrder) {
+            const sortCheckbox = document.getElementById(`sort-${settings.sortBy}-${settings.sortOrder}`);
+            if (sortCheckbox) {
+                sortCheckbox.checked = true;
+            }
+        }
     }
 }
 

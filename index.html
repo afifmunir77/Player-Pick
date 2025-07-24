@@ -76,7 +76,7 @@
         padding-left: 10px;
     }
     .player-cards-container {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
         gap: 10px;
     }
     .player-card-image {
@@ -129,9 +129,14 @@
             <div class="card filter-section">
                 <h2>Filters</h2>
                 <div class="filter-group">
-                    <label for="ovr-filter">OVR Filter:</label>
-                    <input type="range" id="ovr-filter" min="108" max="111" value="108" step="1" class="w-full">
-                    <span id="ovr-value" class="block text-center mt-2 font-semibold">108</span>
+                    <label for="min-ovr-filter">Min OVR:</label>
+                    <input type="range" id="min-ovr-filter" min="108" max="111" value="108" step="1" class="w-full">
+                    <span id="min-ovr-value" class="block text-center mt-2 font-semibold">108</span>
+                </div>
+                <div class="filter-group mt-4">
+                    <label for="max-ovr-filter">Max OVR:</label>
+                    <input type="range" id="max-ovr-filter" min="108" max="111" value="111" step="1" class="w-full">
+                    <span id="max-ovr-value" class="block text-center mt-2 font-semibold">111</span>
                 </div>
                 <div class="filter-group">
                     <label for="min-shard-filter">Min Shard Cost:</label>
@@ -143,13 +148,8 @@
                     <input type="range" id="max-shard-filter" min="0" max="1500" value="1500" step="100" class="w-full">
                     <span id="max-shard-value" class="block text-center mt-2 font-semibold">1500</span>
                 </div>
-                <div class="filter-group mt-4">
-                    <button id="position-filter-toggle" class="w-full text-left p-2 bg-gray-200 hover:bg-gray-300 rounded-md font-semibold">
-                        Filter by Position <span id="position-filter-arrow">&#9662;</span>
-                    </button>
-                    <div id="position-filter-panel" class="hidden mt-2 p-3 border border-gray-300 rounded-md max-h-60 overflow-y-auto">
-                        {/* Position checkboxes will be dynamically inserted here */}
-                    </div>
+                <div id="position-filter-panel" class="mt-2 p-3 border border-gray-300 rounded-md max-h-60 overflow-y-auto">
+                    {/* Position checkboxes will be dynamically inserted here */}
                 </div>
             </div>
 
@@ -269,32 +269,50 @@ function getUniquePositions() {
 function populatePositionFilter() {
     const panel = document.getElementById('position-filter-panel');
     panel.innerHTML = ''; // Clear existing options
-    const uniquePositions = getUniquePositions();
 
-    uniquePositions.forEach(position => {
-        const checkboxId = `pos-${position.toLowerCase().replace(/\s+/g, '-')}`;
-        const wrapper = document.createElement('div');
-        wrapper.className = 'flex items-center mb-2'; // Tailwind classes for layout
+    const positionGroups = {
+        "DEF": ["GK", "CB", "LB", "RB"],
+        "MID": ["CDM", "CM", "CAM", "LM", "RM"],
+        "FWD": ["ST", "LW", "RW"]
+    };
 
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = checkboxId;
-        checkbox.value = position;
-        checkbox.className = 'form-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500';
-        checkbox.addEventListener('change', () => {
-            updateDisplay();
-            saveSettings();
+    for (const group in positionGroups) {
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'mb-2';
+        const groupLabel = document.createElement('strong');
+        groupLabel.textContent = group;
+        groupDiv.appendChild(groupLabel);
+
+        const positionsDiv = document.createElement('div');
+        positionsDiv.className = 'flex flex-wrap';
+
+        positionGroups[group].forEach(position => {
+            const checkboxId = `pos-${position.toLowerCase().replace(/\s+/g, '-')}`;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex items-center mr-4 mb-2';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = checkboxId;
+            checkbox.value = position;
+            checkbox.className = 'form-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500';
+            checkbox.addEventListener('change', () => {
+                updateDisplay();
+                saveSettings();
+            });
+
+            const label = document.createElement('label');
+            label.htmlFor = checkboxId;
+            label.textContent = position;
+            label.className = 'ml-2 text-gray-700';
+
+            wrapper.appendChild(checkbox);
+            wrapper.appendChild(label);
+            positionsDiv.appendChild(wrapper);
         });
-
-        const label = document.createElement('label');
-        label.htmlFor = checkboxId;
-        label.textContent = position;
-        label.className = 'ml-2 text-gray-700';
-
-        wrapper.appendChild(checkbox);
-        wrapper.appendChild(label);
-        panel.appendChild(wrapper);
-    });
+        groupDiv.appendChild(positionsDiv);
+        panel.appendChild(groupDiv);
+    }
 }
 
 function togglePositionFilterPanel() {
@@ -322,7 +340,7 @@ function renderPlayerCards(data) {
             <img src="${player.imageUrl}" alt="${player.name} Player Card" class="player-card-image"
                  onerror="this.onerror=null;this.src='https://placehold.co/300x375/CCCCCC/333333?text=Image+Not+Found';">
             <div class="player-card-info">
-                <p class="font-bold text-sm p-1 rounded-md bg-green-500 text-white">${player.shardCost}</p>
+                <p class="font-bold text-lg p-2 rounded-md bg-green-500 text-white">Shard: ${player.shardCost}</p>
             </div>
         `;
         cardsContainer.appendChild(card);
@@ -340,14 +358,15 @@ function updateSummary(data) {
 
 // Function to filter players based on OVR and Shard Cost
 function filterPlayers() {
-    const ovrFilter = parseInt(document.getElementById('ovr-filter').value);
+    const minOvrFilter = parseInt(document.getElementById('min-ovr-filter').value);
+    const maxOvrFilter = parseInt(document.getElementById('max-ovr-filter').value);
     const minShardFilter = parseInt(document.getElementById('min-shard-filter').value);
     const maxShardFilter = parseInt(document.getElementById('max-shard-filter').value);
 
     let filteredPlayers = [...players]; // Start with a copy of all players
 
     // Apply OVR filter
-    filteredPlayers = filteredPlayers.filter(player => player.ovr === ovrFilter);
+    filteredPlayers = filteredPlayers.filter(player => player.ovr >= minOvrFilter && player.ovr <= maxOvrFilter);
 
     // Apply Shard Cost filter
     filteredPlayers = filteredPlayers.filter(player => player.shardCost >= minShardFilter && player.shardCost <= maxShardFilter);
@@ -541,8 +560,24 @@ function updateDisplay() {
 }
 
 // Event listeners for filters and sorting
-document.getElementById('ovr-filter').addEventListener('input', function() {
-    document.getElementById('ovr-value').textContent = this.value;
+document.getElementById('min-ovr-filter').addEventListener('input', function() {
+    document.getElementById('min-ovr-value').textContent = this.value;
+    const maxOvrFilter = document.getElementById('max-ovr-filter');
+    if (parseInt(this.value) > parseInt(maxOvrFilter.value)) {
+        maxOvrFilter.value = this.value;
+        document.getElementById('max-ovr-value').textContent = this.value;
+    }
+    updateDisplay();
+    saveSettings();
+});
+
+document.getElementById('max-ovr-filter').addEventListener('input', function() {
+    document.getElementById('max-ovr-value').textContent = this.value;
+    const minOvrFilter = document.getElementById('min-ovr-filter');
+    if (parseInt(this.value) < parseInt(minOvrFilter.value)) {
+        minOvrFilter.value = this.value;
+        document.getElementById('min-ovr-value').textContent = this.value;
+    }
     updateDisplay();
     saveSettings();
 });

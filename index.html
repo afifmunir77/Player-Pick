@@ -274,27 +274,35 @@ function populatePositionFilter() {
 
         positions.forEach(position => {
             const checkboxId = `pos-${position.toLowerCase().replace(/\s+/g, '-')}`;
-            const wrapper = document.createElement('div');
-            wrapper.className = 'flex items-center';
+
+            const label = document.createElement('label');
+            label.htmlFor = checkboxId;
+            label.textContent = position;
+            label.className = 'p-2 border rounded-md text-center cursor-pointer transition-colors';
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.id = checkboxId;
             checkbox.value = position;
-            checkbox.className = 'form-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500';
+            checkbox.className = 'hidden'; // Hide the checkbox
+
             checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    label.classList.add('bg-blue-500', 'text-white');
+                } else {
+                    label.classList.remove('bg-blue-500', 'text-white');
+                }
                 updateDisplay();
                 saveSettings();
             });
 
-            const label = document.createElement('label');
-            label.htmlFor = checkboxId;
-            label.textContent = position;
-            label.className = 'ml-2 text-gray-700';
+            // Set initial state
+            if (checkbox.checked) {
+                label.classList.add('bg-blue-500', 'text-white');
+            }
 
-            wrapper.appendChild(checkbox);
-            wrapper.appendChild(label);
-            positionsDiv.appendChild(wrapper);
+            positionsDiv.appendChild(checkbox);
+            positionsDiv.appendChild(label);
         });
 
         groupDiv.appendChild(positionsDiv);
@@ -619,56 +627,64 @@ function populateSortingPanel() {
         { label: "Shard", value: "shard-cost" }
     ];
 
-    const table = document.createElement('table');
-    table.className = 'w-full text-left border-collapse';
+    const container = document.createElement('div');
+    container.className = 'grid grid-cols-2 gap-2';
 
     sortingOptions.forEach(option => {
-        const row = table.insertRow();
-
-        // Ascending cell
-        const ascCell = row.insertCell();
-        ascCell.className = 'p-2 border-b border-gray-200';
-        const ascWrapper = document.createElement('div');
-        ascWrapper.className = 'flex items-center';
+        // Ascending button
+        const ascCheckboxId = `sort-${option.value}-asc`;
+        const ascLabel = document.createElement('label');
+        ascLabel.htmlFor = ascCheckboxId;
+        ascLabel.textContent = `${option.label} \u2191`; // Up arrow
+        ascLabel.className = 'p-2 border rounded-md text-center cursor-pointer transition-colors';
         const ascCheckbox = document.createElement('input');
         ascCheckbox.type = 'checkbox';
-        ascCheckbox.id = `sort-${option.value}-asc`;
+        ascCheckbox.id = ascCheckboxId;
         ascCheckbox.name = 'sort-option';
         ascCheckbox.dataset.sortBy = option.value;
         ascCheckbox.dataset.sortOrder = 'asc';
-        ascCheckbox.className = 'form-checkbox h-5 w-5 text-blue-600';
-        ascCheckbox.addEventListener('change', handleSortChange);
-        const ascLabel = document.createElement('label');
-        ascLabel.htmlFor = `sort-${option.value}-asc`;
-        ascLabel.textContent = `${option.label} \u2191`; // Up arrow
-        ascLabel.className = 'ml-2';
-        ascWrapper.appendChild(ascCheckbox);
-        ascWrapper.appendChild(ascLabel);
-        ascCell.appendChild(ascWrapper);
+        ascCheckbox.className = 'hidden';
+        ascCheckbox.addEventListener('change', (e) => {
+            handleSortChange(e);
+            updateSortButtons();
+        });
+        container.appendChild(ascCheckbox);
+        container.appendChild(ascLabel);
 
-        // Descending cell
-        const descCell = row.insertCell();
-        descCell.className = 'p-2 border-b border-gray-200';
-        const descWrapper = document.createElement('div');
-        descWrapper.className = 'flex items-center';
+        // Descending button
+        const descCheckboxId = `sort-${option.value}-desc`;
+        const descLabel = document.createElement('label');
+        descLabel.htmlFor = descCheckboxId;
+        descLabel.textContent = `${option.label} \u2193`; // Down arrow
+        descLabel.className = 'p-2 border rounded-md text-center cursor-pointer transition-colors';
         const descCheckbox = document.createElement('input');
         descCheckbox.type = 'checkbox';
-        descCheckbox.id = `sort-${option.value}-desc`;
+        descCheckbox.id = descCheckboxId;
         descCheckbox.name = 'sort-option';
         descCheckbox.dataset.sortBy = option.value;
         descCheckbox.dataset.sortOrder = 'desc';
-        descCheckbox.className = 'form-checkbox h-5 w-5 text-blue-600';
-        descCheckbox.addEventListener('change', handleSortChange);
-        const descLabel = document.createElement('label');
-        descLabel.htmlFor = `sort-${option.value}-desc`;
-        descLabel.textContent = `${option.label} \u2193`; // Down arrow
-        descLabel.className = 'ml-2';
-        descWrapper.appendChild(descCheckbox);
-        descWrapper.appendChild(descLabel);
-        descCell.appendChild(descWrapper);
+        descCheckbox.className = 'hidden';
+        descCheckbox.addEventListener('change', (e) => {
+            handleSortChange(e);
+            updateSortButtons();
+        });
+        container.appendChild(descCheckbox);
+        container.appendChild(descLabel);
     });
 
-    panel.appendChild(table);
+    panel.appendChild(container);
+    updateSortButtons(); // Initial update
+}
+
+function updateSortButtons() {
+    document.querySelectorAll('#sorting-panel input[type="checkbox"]').forEach(checkbox => {
+        const label = document.querySelector(`label[for="${checkbox.id}"]`);
+        if (checkbox.checked) {
+            label.classList.add('bg-blue-500', 'text-white');
+        } else {
+            label.classList.remove('bg-blue-500', 'text-white');
+        }
+    });
 }
 
 function handleSortChange(event) {

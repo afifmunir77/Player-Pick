@@ -76,7 +76,7 @@
         padding-left: 10px;
     }
     .player-cards-container {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        grid-template-columns: repeat(2, 1fr);
         gap: 10px;
     }
     .player-card-image {
@@ -118,23 +118,20 @@
     </div>
 
     <div class="container main-content">
+        <div class="cards-container-wrapper">
+            <div class="card">
+                <h2>Player Cards</h2>
+                <div id="player-cards-container" class="player-cards-container">
+                    </div>
+            </div>
+        </div>
         <div class="filters-container">
             <div class="card filter-section">
                 <h2>Filters</h2>
                 <div class="filter-group">
                     <label for="ovr-filter">OVR Filter:</label>
-                    <select id="ovr-filter" class="w-full p-2 border border-gray-300 rounded-md">
-                        <option value="all">All</option>
-                        <option value="106">106</option>
-                        <option value="107">107</option>
-                        <option value="108">108</option>
-                        <option value="109">109</option>
-                        <option value="106-107">106-107</option>
-                        <option value="107-108">107-108</option>
-                        <option value="108-109">108-109</option>
-                        <option value="106-108">106-108</option>
-                        <option value="107-109">107-109</option>
-                    </select>
+                    <input type="range" id="ovr-filter" min="108" max="111" value="108" step="1" class="w-full">
+                    <span id="ovr-value" class="block text-center mt-2 font-semibold">108</span>
                 </div>
                 <div class="filter-group">
                     <label for="min-shard-filter">Min Shard Cost:</label>
@@ -199,14 +196,6 @@
                     <p>Total Players: <span id="total-players" class="font-bold text-yellow-300">17</span></p>
                     <p>Total Shard Cost: <span id="total-shards" class="font-bold text-yellow-300">0</span></p>
                 </div>
-            </div>
-        </div>
-
-        <div class="cards-container-wrapper">
-            <div class="card">
-                <h2>Player Cards</h2>
-                <div id="player-cards-container" class="player-cards-container">
-                    </div>
             </div>
         </div>
     </div>
@@ -333,7 +322,7 @@ function renderPlayerCards(data) {
             <img src="${player.imageUrl}" alt="${player.name} Player Card" class="player-card-image"
                  onerror="this.onerror=null;this.src='https://placehold.co/300x375/CCCCCC/333333?text=Image+Not+Found';">
             <div class="player-card-info">
-                <p class="font-bold text-lg p-2 rounded-md bg-green-500 text-white">Shard: ${player.shardCost}</p>
+                <p class="font-bold text-sm p-1 rounded-md bg-green-500 text-white">${player.shardCost}</p>
             </div>
         `;
         cardsContainer.appendChild(card);
@@ -351,22 +340,14 @@ function updateSummary(data) {
 
 // Function to filter players based on OVR and Shard Cost
 function filterPlayers() {
-    const ovrFilter = document.getElementById('ovr-filter').value;
+    const ovrFilter = parseInt(document.getElementById('ovr-filter').value);
     const minShardFilter = parseInt(document.getElementById('min-shard-filter').value);
     const maxShardFilter = parseInt(document.getElementById('max-shard-filter').value);
 
     let filteredPlayers = [...players]; // Start with a copy of all players
 
     // Apply OVR filter
-    if (ovrFilter !== 'all') {
-        if (ovrFilter.includes('-')) {
-            const [min, max] = ovrFilter.split('-').map(Number);
-            filteredPlayers = filteredPlayers.filter(player => player.ovr >= min && player.ovr <= max);
-        } else {
-            const ovr = parseInt(ovrFilter);
-            filteredPlayers = filteredPlayers.filter(player => player.ovr === ovr);
-        }
-    }
+    filteredPlayers = filteredPlayers.filter(player => player.ovr === ovrFilter);
 
     // Apply Shard Cost filter
     filteredPlayers = filteredPlayers.filter(player => player.shardCost >= minShardFilter && player.shardCost <= maxShardFilter);
@@ -560,7 +541,8 @@ function updateDisplay() {
 }
 
 // Event listeners for filters and sorting
-document.getElementById('ovr-filter').addEventListener('change', () => {
+document.getElementById('ovr-filter').addEventListener('input', function() {
+    document.getElementById('ovr-value').textContent = this.value;
     updateDisplay();
     saveSettings();
 });

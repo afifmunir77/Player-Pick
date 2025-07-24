@@ -280,25 +280,27 @@ function populatePositionFilter() {
     panel.innerHTML = ''; // Clear existing options
 
     const positionGroups = {
-        "DEF": ["GK", "CB", "LB", "RB"],
-        "MID": ["CDM", "CM", "CAM", "LM", "RM"],
-        "FWD": ["ST", "LW", "RW"]
+        "DEF: GK, CB, LB, RB": ["GK", "CB", "LB", "RB"],
+        "MID: CDM, CM, CAM, LM, RM": ["CDM", "CM", "CAM", "LM", "RM"],
+        "FWD: ST, LW, RW": ["ST", "LW", "RW"]
     };
 
-    for (const group in positionGroups) {
+    for (const groupLabelText in positionGroups) {
+        const positions = positionGroups[groupLabelText];
         const groupDiv = document.createElement('div');
         groupDiv.className = 'mb-2';
+
         const groupLabel = document.createElement('strong');
-        groupLabel.textContent = group;
+        groupLabel.textContent = groupLabelText;
         groupDiv.appendChild(groupLabel);
 
         const positionsDiv = document.createElement('div');
-        positionsDiv.className = 'flex flex-wrap';
+        positionsDiv.className = 'grid grid-cols-4 gap-2 mt-1'; // Use grid for alignment
 
-        positionGroups[group].forEach(position => {
+        positions.forEach(position => {
             const checkboxId = `pos-${position.toLowerCase().replace(/\s+/g, '-')}`;
             const wrapper = document.createElement('div');
-            wrapper.className = 'flex items-center mr-4 mb-2';
+            wrapper.className = 'flex items-center';
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
@@ -319,6 +321,7 @@ function populatePositionFilter() {
             wrapper.appendChild(label);
             positionsDiv.appendChild(wrapper);
         });
+
         groupDiv.appendChild(positionsDiv);
         panel.appendChild(groupDiv);
     }
@@ -393,8 +396,13 @@ function filterPlayers() {
 
 // Function to sort players
 function sortPlayers(data) {
-    const sortBy = document.getElementById('sort-by').value;
-    const sortOrder = document.getElementById('sort-order').value;
+    const selectedSortOption = document.querySelector('input[name="sort-option"]:checked');
+    if (!selectedSortOption) {
+        return data; // No sort option selected
+    }
+
+    const sortBy = selectedSortOption.dataset.sortBy;
+    const sortOrder = selectedSortOption.dataset.sortOrder;
 
     return [...data].sort((a, b) => {
         let comparison = 0;
@@ -404,14 +412,12 @@ function sortPlayers(data) {
         } else if (sortBy === 'ovr') {
             comparison = a.ovr - b.ovr;
         } else if (sortBy === 'position') {
-            // Use predefined order for positions
-            const posA = positionOrder[a.position] || 99; // Default to high value if position not found
+            const posA = positionOrder[a.position] || 99;
             const posB = positionOrder[b.position] || 99;
             comparison = posA - posB;
         } else if (sortBy === 'shard-cost') {
             comparison = a.shardCost - b.shardCost;
         } else if (sortBy === 'week') {
-            // Handle empty week values for sorting, treating "" as lowest
             const weekA = a.week !== "" ? a.week : -1;
             const weekB = b.week !== "" ? b.week : -1;
             comparison = weekA - weekB;
@@ -423,13 +429,15 @@ function sortPlayers(data) {
 
 // Function to save current settings to localStorage
 function saveSettings() {
+    const selectedSortOption = document.querySelector('input[name="sort-option"]:checked');
     const settings = {
-        ovrFilter: document.getElementById('ovr-filter').value,
-        minShardFilter: document.getElementById('min-shard-filter').value,
-        maxShardFilter: document.getElementById('max-shard-filter').value,
+        minOvr: document.getElementById('min-ovr-filter').value,
+        maxOvr: document.getElementById('max-ovr-filter').value,
+        minShard: document.getElementById('min-shard-filter').value,
+        maxShard: document.getElementById('max-shard-filter').value,
         selectedPositions: Array.from(document.querySelectorAll('#position-filter-panel input[type="checkbox"]:checked')).map(cb => cb.value),
-        sortBy: document.getElementById('sort-by').value,
-        sortOrder: document.getElementById('sort-order').value
+        sortBy: selectedSortOption ? selectedSortOption.dataset.sortBy : null,
+        sortOrder: selectedSortOption ? selectedSortOption.dataset.sortOrder : null
     };
     localStorage.setItem('avsSettings', JSON.stringify(settings));
 }
@@ -439,11 +447,14 @@ function loadSettings() {
     const savedSettings = localStorage.getItem('avsSettings');
     if (savedSettings) {
         const settings = JSON.parse(savedSettings);
-        document.getElementById('ovr-filter').value = settings.ovrFilter;
-        document.getElementById('min-shard-filter').value = settings.minShardFilter || "0";
-        document.getElementById('min-shard-value').textContent = settings.minShardFilter || "0";
-        document.getElementById('max-shard-filter').value = settings.maxShardFilter || "1500";
-        document.getElementById('max-shard-value').textContent = settings.maxShardFilter || "1500";
+        document.getElementById('min-ovr-filter').value = settings.minOvr || "108";
+        document.getElementById('min-ovr-value').textContent = settings.minOvr || "108";
+        document.getElementById('max-ovr-filter').value = settings.maxOvr || "111";
+        document.getElementById('max-ovr-value').textContent = settings.maxOvr || "111";
+        document.getElementById('min-shard-filter').value = settings.minShard || "0";
+        document.getElementById('min-shard-value').textContent = settings.minShard || "0";
+        document.getElementById_('max-shard-filter').value = settings.maxShard || "1500";
+        document.getElementById_('max-shard-value').textContent = settings.maxShard || "1500";
 
         if (settings.selectedPositions && Array.isArray(settings.selectedPositions)) {
             settings.selectedPositions.forEach(positionValue => {
@@ -454,8 +465,12 @@ function loadSettings() {
             });
         }
 
-        document.getElementById('sort-by').value = settings.sortBy;
-        document.getElementById('sort-order').value = settings.sortOrder;
+        if (settings.sortBy && settings.sortOrder) {
+            const sortCheckbox = document.getElementById(`sort-${settings.sortBy}-${settings.sortOrder}`);
+            if (sortCheckbox) {
+                sortCheckbox.checked = true;
+            }
+        }
     }
 }
 
@@ -464,19 +479,21 @@ function savePreset() {
     const presetNameInput = document.getElementById('preset-name');
     const presetName = presetNameInput.value.trim();
     if (!presetName) {
-        console.error('Please enter a preset name'); // Using console.error, replace with custom modal for production
+        console.error('Please enter a preset name');
         return;
     }
 
+    const selectedSortOption = document.querySelector('input[name="sort-option"]:checked');
     const preset = {
         name: presetName,
         settings: {
-            ovrFilter: document.getElementById('ovr-filter').value,
-            minShardFilter: document.getElementById('min-shard-filter').value,
-            maxShardFilter: document.getElementById('max-shard-filter').value,
+            minOvr: document.getElementById('min-ovr-filter').value,
+            maxOvr: document.getElementById('max-ovr-filter').value,
+            minShard: document.getElementById('min-shard-filter').value,
+            maxShard: document.getElementById('max-shard-filter').value,
             selectedPositions: Array.from(document.querySelectorAll('#position-filter-panel input[type="checkbox"]:checked')).map(cb => cb.value),
-            sortBy: document.getElementById('sort-by').value,
-            sortOrder: document.getElementById('sort-order').value
+            sortBy: selectedSortOption ? selectedSortOption.dataset.sortBy : null,
+            sortOrder: selectedSortOption ? selectedSortOption.dataset.sortOrder : null
         }
     };
 
@@ -524,27 +541,30 @@ function loadPresets() {
             const preset = presets.find(p => p.name === presetName);
 
             if (preset) {
-                document.getElementById('ovr-filter').value = preset.settings.ovrFilter;
-                document.getElementById('min-shard-filter').value = preset.settings.minShardFilter || "0";
-                document.getElementById('min-shard-value').textContent = preset.settings.minShardFilter || "0";
-                document.getElementById('max-shard-filter').value = preset.settings.maxShardFilter || "1500";
-                document.getElementById('max-shard-value').textContent = preset.settings.maxShardFilter || "1500";
-                document.getElementById('sort-by').value = preset.settings.sortBy;
-                document.getElementById('sort-order').value = preset.settings.sortOrder;
+                document.getElementById('min-ovr-filter').value = preset.settings.minOvr || "108";
+                document.getElementById('min-ovr-value').textContent = preset.settings.minOvr || "108";
+                document.getElementById('max-ovr-filter').value = preset.settings.maxOvr || "111";
+                document.getElementById('max-ovr-value').textContent = preset.settings.maxOvr || "111";
+                document.getElementById('min-shard-filter').value = preset.settings.minShard || "0";
+                document.getElementById('min-shard-value').textContent = preset.settings.minShard || "0";
+                document.getElementById('max-shard-filter').value = preset.settings.maxShard || "1500";
+                document.getElementById('max-shard-value').textContent = preset.settings.maxShard || "1500";
 
-                // Clear existing position checkboxes
                 document.querySelectorAll('#position-filter-panel input[type="checkbox"]').forEach(cb => cb.checked = false);
-                // Load position filter settings from preset
                 if (preset.settings.selectedPositions && Array.isArray(preset.settings.selectedPositions)) {
                     preset.settings.selectedPositions.forEach(positionValue => {
                         const checkbox = document.querySelector(`#position-filter-panel input[value="${positionValue}"]`);
-                        if (checkbox) {
-                            checkbox.checked = true;
-                        }
+                        if (checkbox) checkbox.checked = true;
                     });
                 }
 
-                updateDisplay(); // Call updateDisplay to render cards
+                document.querySelectorAll('input[name="sort-option"]').forEach(cb => cb.checked = false);
+                if (preset.settings.sortBy && preset.settings.sortOrder) {
+                    const sortCheckbox = document.getElementById(`sort-${preset.settings.sortBy}-${preset.settings.sortOrder}`);
+                    if (sortCheckbox) sortCheckbox.checked = true;
+                }
+
+                updateDisplay();
                 saveSettings();
             }
         });
@@ -618,57 +638,64 @@ document.getElementById('max-shard-filter').addEventListener('input', function()
 // --- SORTING FUNCTIONS ---
 function populateSortingPanel() {
     const panel = document.getElementById('sorting-panel');
-    panel.innerHTML = '';
+    panel.innerHTML = ''; // Clear existing content
 
-    const sortingOptions = {
-        "OVR": "ovr",
-        "Position": "position",
-        "Shard": "shard-cost"
-    };
+    const sortingOptions = [
+        { label: "OVR", value: "ovr" },
+        { label: "Position", value: "position" },
+        { label: "Shard", value: "shard-cost" }
+    ];
 
-    for (const label in sortingOptions) {
-        const value = sortingOptions[label];
-        const row = document.createElement('div');
-        row.className = 'flex justify-between items-center mb-2';
+    const table = document.createElement('table');
+    table.className = 'w-full text-left border-collapse';
 
+    sortingOptions.forEach(option => {
+        const row = table.insertRow();
+
+        // Ascending cell
+        const ascCell = row.insertCell();
+        ascCell.className = 'p-2 border-b border-gray-200';
         const ascWrapper = document.createElement('div');
         ascWrapper.className = 'flex items-center';
         const ascCheckbox = document.createElement('input');
         ascCheckbox.type = 'checkbox';
-        ascCheckbox.id = `sort-${value}-asc`;
+        ascCheckbox.id = `sort-${option.value}-asc`;
         ascCheckbox.name = 'sort-option';
-        ascCheckbox.dataset.sortBy = value;
+        ascCheckbox.dataset.sortBy = option.value;
         ascCheckbox.dataset.sortOrder = 'asc';
-        ascCheckbox.className = 'form-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500';
+        ascCheckbox.className = 'form-checkbox h-5 w-5 text-blue-600';
         ascCheckbox.addEventListener('change', handleSortChange);
         const ascLabel = document.createElement('label');
-        ascLabel.htmlFor = `sort-${value}-asc`;
-        ascLabel.textContent = `${label} \u2191`;
-        ascLabel.className = 'ml-2 text-gray-700';
+        ascLabel.htmlFor = `sort-${option.value}-asc`;
+        ascLabel.textContent = `${option.label} \u2191`; // Up arrow
+        ascLabel.className = 'ml-2';
         ascWrapper.appendChild(ascCheckbox);
         ascWrapper.appendChild(ascLabel);
+        ascCell.appendChild(ascWrapper);
 
+        // Descending cell
+        const descCell = row.insertCell();
+        descCell.className = 'p-2 border-b border-gray-200';
         const descWrapper = document.createElement('div');
         descWrapper.className = 'flex items-center';
         const descCheckbox = document.createElement('input');
         descCheckbox.type = 'checkbox';
-        descCheckbox.id = `sort-${value}-desc`;
+        descCheckbox.id = `sort-${option.value}-desc`;
         descCheckbox.name = 'sort-option';
-        descCheckbox.dataset.sortBy = value;
+        descCheckbox.dataset.sortBy = option.value;
         descCheckbox.dataset.sortOrder = 'desc';
-        descCheckbox.className = 'form-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500';
+        descCheckbox.className = 'form-checkbox h-5 w-5 text-blue-600';
         descCheckbox.addEventListener('change', handleSortChange);
         const descLabel = document.createElement('label');
-        descLabel.htmlFor = `sort-${value}-desc`;
-        descLabel.textContent = `${label} \u2193`;
-        descLabel.className = 'ml-2 text-gray-700';
+        descLabel.htmlFor = `sort-${option.value}-desc`;
+        descLabel.textContent = `${option.label} \u2193`; // Down arrow
+        descLabel.className = 'ml-2';
         descWrapper.appendChild(descCheckbox);
         descWrapper.appendChild(descLabel);
+        descCell.appendChild(descWrapper);
+    });
 
-        row.appendChild(ascWrapper);
-        row.appendChild(descWrapper);
-        panel.appendChild(row);
-    }
+    panel.appendChild(table);
 }
 
 function handleSortChange(event) {
@@ -682,48 +709,12 @@ function handleSortChange(event) {
     saveSettings();
 }
 
-// Event listeners for table headers (still present for consistency with sorting options)
-// Note: These event listeners are still present but will not directly impact the UI if the table headers
-// themselves are not visible or clickable. Their functionality is now mirrored by the select elements.
-document.getElementById('name-header')?.addEventListener('click', () => {
-    document.getElementById('sort-by').value = 'name';
-    const currentOrder = document.getElementById('sort-order').value;
-    document.getElementById('sort-order').value = currentOrder === 'asc' ? 'desc' : 'asc';
-    updateDisplay();
-    saveSettings();
-});
+// Event listeners for preset buttons
+document.getElementById('save-preset').addEventListener('click', savePreset);
+document.getElementById('load-preset').addEventListener('click', loadPresets);
 
-document.getElementById('ovr-header')?.addEventListener('click', () => {
-    document.getElementById('sort-by').value = 'ovr';
-    const currentOrder = document.getElementById('sort-order').value;
-    document.getElementById('sort-order').value = currentOrder === 'asc' ? 'desc' : 'asc';
-    updateDisplay();
-    saveSettings();
-});
-
-document.getElementById('position-header')?.addEventListener('click', () => {
-    document.getElementById('sort-by').value = 'position';
-    const currentOrder = document.getElementById('sort-order').value;
-    document.getElementById('sort-order').value = currentOrder === 'asc' ? 'desc' : 'asc';
-    updateDisplay();
-    saveSettings();
-});
-
-document.getElementById('shard-cost-header')?.addEventListener('click', () => {
-    document.getElementById('sort-by').value = 'shard-cost';
-    const currentOrder = document.getElementById('sort-order').value;
-    document.getElementById('sort-order').value = currentOrder === 'asc' ? 'desc' : 'asc';
-    updateDisplay();
-    saveSettings();
-});
-
-document.getElementById('week-header')?.addEventListener('click', () => {
-    document.getElementById('sort-by').value = 'week';
-    const currentOrder = document.getElementById('sort-order').value;
-    document.getElementById('sort-order').value = currentOrder === 'asc' ? 'desc' : 'asc';
-    updateDisplay();
-    saveSettings();
-});
+// Event listener for position filter toggle
+document.getElementById('position-filter-toggle')?.addEventListener('click', togglePositionFilterPanel);
 
 
 // Event listeners for preset buttons

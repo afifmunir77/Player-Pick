@@ -113,21 +113,37 @@
 </head>
 <body>
     <div class="header">
-        <h1>Player Pick (Ragnarok: Mighty Winter)</h1>
+        <h1>Player Pick</h1>
         <div class="credit">Developed by: Afif Munir</div>
+        <div class="view-mode-selector" style="color: black;">
+            <input type="checkbox" id="mighty-winter-checkbox" name="view-mode" value="mighty-winter" checked>
+            <label for="mighty-winter-checkbox">Mighty Winter</label>
+            <input type="checkbox" id="after-daybreak-checkbox" name="view-mode" value="after-daybreak">
+            <label for="after-daybreak-checkbox">After Daybreak</label>
+        </div>
     </div>
 
     <div class="container main-content">
         <div class="cards-container-wrapper">
             <div class="card">
-                <h2>Player Cards</h2>
+                <div class="flex justify-between items-center">
+                    <h2>Player Cards</h2>
+                    <button id="toggle-filters" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-l">
+                        &lt;
+                    </button>
+                </div>
                 <div id="player-cards-container" class="player-cards-container">
                     </div>
             </div>
         </div>
         <div class="filters-container">
             <div class="card filter-section">
-                <h2>Filters</h2>
+                <div class="flex justify-between items-center">
+                    <h2>Filters</h2>
+                    <button id="toggle-cards" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-r">
+                        &gt;
+                    </button>
+                </div>
                 <div class="filter-group">
                     <label for="min-ovr-filter">Min OVR:</label>
                     <input type="range" id="min-ovr-filter" min="108" max="111" value="108" step="1" class="w-full">
@@ -185,57 +201,7 @@
     </div>
 
     <script>
-// Player data for current event
-const players = [
-    { name: "Touré", ovr: 111, position: "CDM", shardCost: 1000, imageUrl: "https://i.ibb.co/YBzsxh1b/Tour-111.png" },
-    { name: "Bergkamp", ovr: 111, position: "CAM", shardCost: 800, imageUrl: "https://i.ibb.co/Kxsf9CVY/Bergkamp-111.png" },
-    { name: "Schweinsteiger", ovr: 110, position: "CM", shardCost: 800, imageUrl: "https://i.ibb.co/LX8Fn5Q3/Schweinsteiger-110.png" },
-    { name: "Lizarazu", ovr: 110, position: "LB", shardCost: 650, imageUrl: "https://i.ibb.co/9mNY11xP/Lizarazu-110.png" },
-    { name: "Reus", ovr: 109, position: "CAM", shardCost: 300, imageUrl: "https://i.ibb.co/99j93zQY/Reus-109.png" },
-    { name: "Trippier", ovr: 109, position: "RB", shardCost: 300, imageUrl: "https://i.ibb.co/RG8qjFGk/Trippier-109.png" },
-    { name: "Santa Cruz", ovr: 108, position: "ST", shardCost: 200, imageUrl: "https://i.ibb.co/ZCjGv1S/Santa-Cruz-108.png" },
-    { name: "Ginola", ovr: 111, position: "ST", shardCost: 1500, imageUrl: "https://i.ibb.co/LX12fJRg/Ginola-111.png" },
-    { name: "Nedved", ovr: 111, position: "LM", shardCost: 1000, imageUrl: "https://i.ibb.co/tT7g5XR2/Nedv-d-111.png" },
-    { name: "Oblak", ovr: 110, position: "GK", shardCost: 800, imageUrl: "https://i.ibb.co/sds6bP91/Oblak-110.png" },
-    { name: "Cambiaso", ovr: 110, position: "CDM", shardCost: 500, imageUrl: "https://i.ibb.co/21QBwrYP/Cambiasso-110.png" },
-    { name: "Beasley", ovr: 109, position: "LM", shardCost: 450, imageUrl: "https://i.ibb.co/7x1HjBMn/Beasley-109.png" },
-    { name: "Aubameyang", ovr: 109, position: "ST", shardCost: 300, imageUrl: "https://i.ibb.co/1YtZGXZ7/Aubameyang-109.png" },
-    { name: "Zaha", ovr: 108, position: "LW", shardCost: 200, imageUrl: "https://i.ibb.co/TBk2Bnk5/Zaha-108.png" },
-    { name: "Charlton", ovr: 111, position: "CAM", shardCost: 1250, imageUrl: "https://i.ibb.co/tMYKkL1b/Charlton-111.png" },
-    { name: "Carlos Alberto", ovr: 111, position: "RB", shardCost: 1500, imageUrl: "https://i.ibb.co/HTN6sLsF/Carlos-Alberto-111.png" },
-    { name: "King", ovr: 110, position: "CB", shardCost: 650, imageUrl: "https://i.ibb.co/MxyjNdP7/King-110.png" },
-    { name: "Hagi", ovr: 110, position: "RM", shardCost: 800, imageUrl: "https://i.ibb.co/S73LwJLb/Hagi-110.png" },
-    { name: "Guti", ovr: 109, position: "CM", shardCost: 300, imageUrl: "https://i.ibb.co/RTrcPTtd/Guti-109.png" },
-    { name: "Szczesny", ovr: 109, position: "GK", shardCost: 450, imageUrl: "https://i.ibb.co/HLjGWTHY/Szcz-sny-109.png" },
-    { name: "Abedi Pelé", ovr: 108, position: "CAM", shardCost: 200, imageUrl: "https://i.ibb.co/J02tzhL/Abedi-Pele-108.png" },
-    { name: "Best", ovr: 111, position: "LW", shardCost: 1250, imageUrl: "https://i.ibb.co/jPGFnCRR/Best-111.png" },
-    { name: "Drogba", ovr: 111, position: "ST", shardCost: 1250, imageUrl: "https://i.ibb.co/ks20vdjH/Drogba-111.png" },
-    { name: "Keane", ovr: 110, position: "CDM", shardCost: 500, imageUrl: "https://i.ibb.co/wN4txFZt/Keane-110.png" },
-    { name: "Lampard", ovr: 110, position: "CM", shardCost: 650, imageUrl: "https://i.ibb.co/schrWXT/Lampard-110.png" },
-    { name: "Burn", ovr: 109, position: "CB", shardCost: 300, imageUrl: "https://i.ibb.co/Q7TNpbLM/Burn-109.png" },
-    { name: "Pedro", ovr: 109, position: "RW", shardCost: 300, imageUrl: "https://i.ibb.co/wVjCwwz/Pedro-109.png" },
-    { name: "Guerreiro", ovr: 108, position: "LB", shardCost: 300, imageUrl: "https://i.ibb.co/HLKfQD1N/Guerreiro-108.png" },
-    { name: "Blanc", ovr: 111, position: "CB", shardCost: 1250, imageUrl: "https://i.ibb.co/21kkxNb6/Blanc-111.png" },
-    { name: "Yashin", ovr: 111, position: "GK", shardCost: 1250, imageUrl: "https://i.ibb.co/CK8jpzrs/Yashin-111.png" },
-    { name: "Griezmann", ovr: 110, position: "CAM", shardCost: 650, imageUrl: "https://i.ibb.co/hRTb0MQ8/Griezmann-110.png" },
-    { name: "Carvajal", ovr: 110, position: "RB", shardCost: 800, imageUrl: "https://i.ibb.co/Gr53t9n/Carvajal-110.png" },
-    { name: "Mané", ovr: 109, position: "LW", shardCost: 450, imageUrl: "https://i.ibb.co/5xYztP1j/Man-109.png" },
-    { name: "Giroud", ovr: 109, position: "ST", shardCost: 300, imageUrl: "https://i.ibb.co/MyBWNXry/Giroud-109.png" },
-    { name: "Coates", ovr: 108, position: "CB", shardCost: 200, imageUrl: "https://i.ibb.co/LDv1YTjp/Coates-108.png" },
-    { name: "Palmer", ovr: 111, position: "CAM", shardCost: 1000, imageUrl: "https://i.ibb.co/Nn1fkpQ9/Palmer-111.png" },
-    { name: "Garrincha", ovr: 111, position: "RW", shardCost: 1000, imageUrl: "https://i.ibb.co/Xkvkp201/Garrincha-111.png" },
-    { name: "Mascherano", ovr: 110, position: "CDM", shardCost: 500, imageUrl: "https://i.ibb.co/HL1DHHV7/Mascherano-110.png" },
-    { name: "Völler", ovr: 110, position: "ST", shardCost: 650, imageUrl: "https://i.ibb.co/YTwXvdFH/V-ller-110.png" },
-    { name: "Sergio Busquets", ovr: 109, position: "CDM", shardCost: 300, imageUrl: "https://i.ibb.co/svgmBpRp/Sergio-Busquets-109.png" },
-    { name: "Nacho Fernández", ovr: 109, position: "CB", shardCost: 300, imageUrl: "https://i.ibb.co/yBYshqDG/Nacho-Fern-ndez-109.png" },
-    { name: "Henderson", ovr: 108, position: "CM", shardCost: 200, imageUrl: "https://i.ibb.co/wFFV9P6t/Henderson-108.png" },
-    { name: "Vidal", ovr: 108, position: "CDM", shardCost: 200, imageUrl: "https://i.ibb.co/SCbJkwf/Vidal-108.png" },
-    { name: "Santi Cazorla", ovr: 108, position: "CM", shardCost: 200, imageUrl: "https://i.ibb.co/SkPXSC1/Santi-Cazorla-108.png" },
-    { name: "Meunier", ovr: 108, position: "RB", shardCost: 200, imageUrl: "https://i.ibb.co/99pn5NMr/Meunier-108.png" },
-    { name: "Zardes", ovr: 108, position: "ST", shardCost: 300, imageUrl: "https://i.ibb.co/Y4mQccHt/Zardes-108.png" },
-    { name: "Joao Moutinho", ovr: 108, position: "CM", shardCost: 200, imageUrl: "https://i.ibb.co/v6YR5bMm/Jo-o-Moutinho-108.png" },
-    { name: "Sissoko", ovr: 108, position: "CDM", shardCost: 200, imageUrl: "https://i.ibb.co/XfL2nNcT/Sissoko-108.png" }
-];
+let players = [];
 
 // Position order for sorting
 const positionOrder = {
@@ -244,24 +210,27 @@ const positionOrder = {
 };
 
 // --- POSITION FILTER FUNCTIONS ---
-function getUniquePositions() {
+function getUniquePositions(playerData) {
     const positions = new Set();
-    players.forEach(player => positions.add(player.position));
+    playerData.forEach(player => positions.add(player.position));
     return Array.from(positions).sort((a, b) => (positionOrder[a] || 99) - (positionOrder[b] || 99));
 }
 
-function populatePositionFilter() {
+function populatePositionFilter(playerData) {
     const panel = document.getElementById('position-filter-panel');
     panel.innerHTML = ''; // Clear existing options
 
+    const uniquePositions = getUniquePositions(playerData);
+
     const positionGroups = {
-        "DEF: GK, CB, LB, RB": ["GK", "CB", "LB", "RB"],
-        "MID: CDM, CM, CAM, LM, RM": ["CDM", "CM", "CAM", "LM", "RM"],
-        "FWD: ST, LW, RW": ["ST", "LW", "RW"]
+        "DEF: GK, CB, LB, RB": uniquePositions.filter(p => ["GK", "CB", "LB", "RB"].includes(p)),
+        "MID: CDM, CM, CAM, LM, RM": uniquePositions.filter(p => ["CDM", "CM", "CAM", "LM", "RM"].includes(p)),
+        "FWD: ST, LW, RW": uniquePositions.filter(p => ["ST", "LW", "RW"].includes(p))
     };
 
     for (const groupLabelText in positionGroups) {
         const positions = positionGroups[groupLabelText];
+        if (positions.length === 0) continue;
         const groupDiv = document.createElement('div');
         groupDiv.className = 'mb-2';
 
@@ -707,7 +676,8 @@ document.getElementById('position-filter-toggle')?.addEventListener('click', tog
 
 // Load settings and presets on page load
 window.addEventListener('load', () => {
-    populatePositionFilter(); // Populate position filter options
+    players = mightyWinterPlayers;
+    populatePositionFilter(players); // Populate position filter options
     populateSortingPanel(); // Populate sorting options
     loadSettings(); // Load saved settings (this will check relevant position checkboxes)
     loadPresets();
@@ -823,6 +793,50 @@ function runFilterTests() {
 }
 // --- END TEST FUNCTIONS ---
 
+        const mightyWinterCheckbox = document.getElementById('mighty-winter-checkbox');
+        const afterDaybreakCheckbox = document.getElementById('after-daybreak-checkbox');
+
+        mightyWinterCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                afterDaybreakCheckbox.checked = false;
+                players = mightyWinterPlayers;
+                populatePositionFilter(players);
+                updateDisplay();
+            } else {
+                this.checked = true;
+            }
+        });
+
+        afterDaybreakCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                mightyWinterCheckbox.checked = false;
+                players = afterDaybreakPlayers;
+                populatePositionFilter(players);
+                updateDisplay();
+            } else {
+                this.checked = true;
+            }
+        });
+
+        document.getElementById('toggle-filters').addEventListener('click', function() {
+            const filtersContainer = document.querySelector('.filters-container');
+            const cardsContainerWrapper = document.querySelector('.cards-container-wrapper');
+            filtersContainer.classList.toggle('hidden');
+            cardsContainerWrapper.classList.toggle('w-full');
+            if (cardsContainerWrapper.classList.contains('w-full')) {
+                document.getElementById('player-cards-container').style.gridTemplateColumns = 'repeat(auto-fill, minmax(250px, 1fr))';
+            } else {
+                document.getElementById('player-cards-container').style.gridTemplateColumns = 'repeat(auto-fill, minmax(250px, 1fr))';
+            }
+        });
+
+        document.getElementById('toggle-cards').addEventListener('click', function() {
+            const filtersContainer = document.querySelector('.filters-container');
+            const cardsContainerWrapper = document.querySelector('.cards-container-wrapper');
+            cardsContainerWrapper.classList.toggle('hidden');
+            filtersContainer.classList.toggle('w-full');
+        });
     </script>
+    <script src="players.js"></script>
 </body>
 </html>

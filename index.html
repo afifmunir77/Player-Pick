@@ -115,7 +115,7 @@
     <div class="header">
         <h1>Player Pick</h1>
         <div class="credit">Developed by: Afif Munir</div>
-        <div class="view-mode-selector" style="color: black;">
+        <div class="view-mode-selector" style="color: white;">
             <input type="checkbox" id="mighty-winter-checkbox" name="view-mode" value="mighty-winter" checked>
             <label for="mighty-winter-checkbox">Mighty Winter</label>
             <input type="checkbox" id="after-daybreak-checkbox" name="view-mode" value="after-daybreak">
@@ -126,24 +126,14 @@
     <div class="container main-content">
         <div class="cards-container-wrapper">
             <div class="card">
-                <div class="flex justify-between items-center">
-                    <h2>Player Cards</h2>
-                    <button id="toggle-filters" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-l">
-                        &lt;
-                    </button>
-                </div>
+                <h2>Player Cards</h2>
                 <div id="player-cards-container" class="player-cards-container">
                     </div>
             </div>
         </div>
         <div class="filters-container">
             <div class="card filter-section">
-                <div class="flex justify-between items-center">
-                    <h2>Filters</h2>
-                    <button id="toggle-cards" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-r">
-                        &gt;
-                    </button>
-                </div>
+                <h2>Filters</h2>
                 <div class="filter-group">
                     <label for="min-ovr-filter">Min OVR:</label>
                     <input type="range" id="min-ovr-filter" min="108" max="111" value="108" step="1" class="w-full">
@@ -239,7 +229,7 @@ function populatePositionFilter(playerData) {
         groupDiv.appendChild(groupLabel);
 
         const positionsDiv = document.createElement('div');
-        positionsDiv.className = 'grid grid-cols-4 gap-2 mt-1'; // Use grid for alignment
+        positionsDiv.className = 'grid grid-cols-3 gap-2 mt-1'; // Use grid for alignment
 
         positions.forEach(position => {
             const checkboxId = `pos-${position.toLowerCase().replace(/\s+/g, '-')}`;
@@ -248,6 +238,9 @@ function populatePositionFilter(playerData) {
             label.htmlFor = checkboxId;
             label.textContent = position;
             label.className = 'p-2 border rounded-md text-center cursor-pointer transition-colors';
+            if (position.length > 2) {
+                label.style.fontSize = '0.8rem';
+            }
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
@@ -816,25 +809,6 @@ function runFilterTests() {
             } else {
                 this.checked = true;
             }
-        });
-
-        document.getElementById('toggle-filters').addEventListener('click', function() {
-            const filtersContainer = document.querySelector('.filters-container');
-            const cardsContainerWrapper = document.querySelector('.cards-container-wrapper');
-            filtersContainer.classList.toggle('hidden');
-            cardsContainerWrapper.classList.toggle('w-full');
-            if (cardsContainerWrapper.classList.contains('w-full')) {
-                document.getElementById('player-cards-container').style.gridTemplateColumns = 'repeat(auto-fill, minmax(250px, 1fr))';
-            } else {
-                document.getElementById('player-cards-container').style.gridTemplateColumns = 'repeat(auto-fill, minmax(250px, 1fr))';
-            }
-        });
-
-        document.getElementById('toggle-cards').addEventListener('click', function() {
-            const filtersContainer = document.querySelector('.filters-container');
-            const cardsContainerWrapper = document.querySelector('.cards-container-wrapper');
-            cardsContainerWrapper.classList.toggle('hidden');
-            filtersContainer.classList.toggle('w-full');
         });
     </script>
     <script src="players.js"></script>

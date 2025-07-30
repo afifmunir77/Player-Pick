@@ -213,14 +213,14 @@ function populatePositionFilter(playerData) {
     const uniquePositions = getUniquePositions(playerData);
 
     const positionGroups = {
-        "GK": uniquePositions.filter(p => ["GK"].includes(p)),
-        "DEF": uniquePositions.filter(p => ["CB", "LB", "RB"].includes(p)),
-        "MID": uniquePositions.filter(p => ["CDM", "CM", "CAM", "LM", "RM"].includes(p)),
-        "FWD": uniquePositions.filter(p => ["ST", "LW", "RW"].includes(p))
+        "GK": ["GK"],
+        "DEF": ["CB", "LB", "RB"],
+        "MID": ["CDM", "CM", "CAM", "LM", "RM"],
+        "FWD": ["ST", "LW", "RW"]
     };
 
     for (const groupLabelText in positionGroups) {
-        const positions = positionGroups[groupLabelText];
+        const positions = positionGroups[groupLabelText].filter(p => uniquePositions.includes(p));
         if (positions.length === 0) continue;
         const groupDiv = document.createElement('div');
         groupDiv.className = 'mb-2';

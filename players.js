@@ -66,5 +66,9 @@ const afterDaybreakPlayers = [
     { name: "OWEN", ovr: 110, position: "ST", shardCost: 650, imageUrl: "https://i.ibb.co/JRpsqgVV/Owen-110.png" },
     { name: "SAKA", ovr: 110, position: "RW", shardCost: 800, imageUrl: "https://i.ibb.co/BVxWPd2G/Saka-110.png" },
     { name: "UDOGIE", ovr: 109, position: "LB", shardCost: 450, imageUrl: "https://i.ibb.co/tT0XXVs6/Udogie-109.png" },
-    { name: "WOLTEMADE", ovr: 109, position: "ST", shardCost: 300, imageUrl: "https://i.ibb.co/9kB8s7CY/Woltemade-109.png" }
+    { name: "WOLTEMADE", ovr: 109, position: "ST", shardCost: 300, imageUrl: "https://i.ibb.co/9kB8s7CY/Woltemade-109.png" },
+    { name: "Dummy GK", ovr: 100, position: "GK", shardCost: 100, imageUrl: "" },
+    { name: "Dummy RB", ovr: 100, position: "RB", shardCost: 100, imageUrl: "" },
+    { name: "Dummy RM", ovr: 100, position: "RM", shardCost: 100, imageUrl: "" },
+    { name: "Dummy LW", ovr: 100, position: "LW", shardCost: 100, imageUrl: "" }
 ];
